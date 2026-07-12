@@ -1,5 +1,7 @@
 # OpenAI Codex Claude Code Proxy
 
+![OpenAI Codex Claude Code Proxy](icons/comic-usb-implant.jpg)
+
 Run Claude Code with GPT models through
 [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI).
 
