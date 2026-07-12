@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets
+.env
+
+# CLIProxyAPI generated runtime state (contains credentials)
+.runtime/
+
+# Local research checkout; not part of this proxy
+tmp/

@@ -1,0 +1,38 @@
+host: "127.0.0.1"
+port: __CLIPROXY_PORT__
+
+tls:
+  enable: false
+
+remote-management:
+  allow-remote: false
+  secret-key: ""
+  disable-control-panel: true
+
+auth-dir: __CLIPROXY_AUTH_DIR__
+
+api-keys:
+  - __CLIPROXY_LOCAL_TOKEN__
+
+debug: false
+commercial-mode: true
+ws-auth: true
+
+codex-api-key:
+  - api-key: __AZURE_API_KEY__
+    base-url: __AZURE_API_BASE__
+    headers:
+      api-key: __AZURE_API_KEY__
+    models:
+      - name: __AZURE_OPUS_DEPLOYMENT__
+        alias: "azure-opus"
+        display-name: "Azure Opus tier"
+        force-mapping: true
+      - name: __AZURE_SONNET_DEPLOYMENT__
+        alias: "azure-sonnet"
+        display-name: "Azure Sonnet tier"
+        force-mapping: true
+      - name: __AZURE_HAIKU_DEPLOYMENT__
+        alias: "azure-haiku"
+        display-name: "Azure Haiku tier"
+        force-mapping: true
