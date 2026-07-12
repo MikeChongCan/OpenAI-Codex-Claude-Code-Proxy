@@ -25,6 +25,14 @@ brew install cliproxyapi
 ```
 
 `claudex` 会自动在后台启动代理，不需要另开终端运行服务器。
+默认模型为 Azure `gpt-5.6-sol`，并强制启用 Claude Code effort 模式。
+
+切换其他 Azure 模型：
+
+```bash
+CLAUDEX_MODEL=gpt-5.6-terra ./claudex
+CLAUDEX_MODEL=gpt-5.6-luna ./claudex
+```
 
 单次执行 Prompt：
 

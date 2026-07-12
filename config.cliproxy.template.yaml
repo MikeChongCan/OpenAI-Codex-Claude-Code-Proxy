@@ -36,3 +36,15 @@ codex-api-key:
         alias: "azure-haiku"
         display-name: "Azure Haiku tier"
         force-mapping: true
+      - name: __AZURE_OPUS_DEPLOYMENT__
+        alias: "gpt-5.6-sol"
+        display-name: "Azure GPT-5.6 Sol"
+        force-mapping: true
+      - name: __AZURE_SONNET_DEPLOYMENT__
+        alias: "gpt-5.6-terra"
+        display-name: "Azure GPT-5.6 Terra"
+        force-mapping: true
+      - name: __AZURE_HAIKU_DEPLOYMENT__
+        alias: "gpt-5.6-luna"
+        display-name: "Azure GPT-5.6 Luna"
+        force-mapping: true

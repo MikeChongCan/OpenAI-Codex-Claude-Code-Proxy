@@ -87,10 +87,12 @@ OAuth files live in `~/.cli-proxy-api` by default and must never be committed.
 
 ## Model mapping
 
-Claude Code's Opus, Sonnet, and Haiku tiers map to `azure-opus`,
-`azure-sonnet`, and `azure-haiku`. Set the three `AZURE_*_DEPLOYMENT` variables
-when Azure has distinct deployments. Otherwise all tiers use
-`AZURE_DEFAULT_DEPLOYMENT`.
+Claude Code defaults to `gpt-5.6-sol`, with `gpt-5.6-terra` and
+`gpt-5.6-luna` available as direct aliases. The compatibility aliases
+`azure-opus`, `azure-sonnet`, and `azure-haiku` remain available. Set the three
+`AZURE_*_DEPLOYMENT` variables when Azure has distinct deployments. The
+launcher explicitly enables Claude Code effort mode and uses Sol for
+subagents.
 
 Azure is configured as a CLIProxyAPI Codex API-key provider, which uses the
 Responses API. This is intentional: GPT-5.6 rejects Chat Completions requests
