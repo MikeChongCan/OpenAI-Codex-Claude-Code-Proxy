@@ -1,12 +1,14 @@
 # 貼文
 
-剛把 Claude Code 接上 GPT-5.6 Sol，底層用 CLIProxyAPI。
+幾個步驟就能讓 Claude Code 使用 GPT-5.6 Sol：
 
-我做了兩個簡單的啟動腳本：
+1. 安裝 CLIProxyAPI。
+2. 連接 Azure OpenAI，或登入 OpenAI／Codex 訂閱。
+3. 將 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_AUTH_TOKEN` 指向本機 proxy。
+4. 建立 `claudex` 啟動腳本，指定 GPT-5.6 Sol、開啟 effort mode，並自動啟動 proxy。
 
-- `./claudex` → Azure OpenAI
-- `./claudex-oai` → OpenAI／Codex 訂閱
+完成。保留熟悉的 Claude Code，同時自由選擇由哪個 GPT provider 執行與計費。感謝 Theo 分享這個做法。
 
-兩邊都會開啟 effort mode、自動啟動 proxy，也能正常使用 Claude Code tools。Azure 的 prompt cache 也有成功命中。
+把下面這句貼給你的 coding agent：
 
-可以繼續用熟悉的橘色螃蟹，同時自由選擇模型從哪裡來。靈感來自 Theo 的分享。
+`請將 CLIProxyAPI 設定為僅監聽 localhost 的 Claude Code gateway，使用 GPT-5.6 Sol，支援 Azure OpenAI API 憑證或 OpenAI Codex OAuth；建立可自動啟動 proxy、開啟 effort mode 的安全 claudex 啟動腳本，保留 prompt cache、不要把 secrets 提交到 Git，最後用真實的 claude -p 工具呼叫完成 smoke test。`
