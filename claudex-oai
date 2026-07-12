@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
+
+export CLIPROXY_LOCAL_TOKEN="${CLIPROXY_LOCAL_TOKEN:-${LITELLM_MASTER_KEY:-}}"
+: "${CLIPROXY_LOCAL_TOKEN:?Set CLIPROXY_LOCAL_TOKEN (or legacy LITELLM_MASTER_KEY)}"
+
+"$SCRIPT_DIR/ensure-cliproxy.sh"
+
+proxy_port="${CLIPROXY_PORT:-8317}"
+model="${CLAUDEX_OAI_MODEL:-gpt-5.4}"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:$proxy_port"
+export ANTHROPIC_AUTH_TOKEN="$CLIPROXY_LOCAL_TOKEN"
+unset ANTHROPIC_API_KEY
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$model"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$model"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$model"
+export CLAUDE_CODE_SUBAGENT_MODEL="$model"
+export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
+export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY="${CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY:-3}"
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export ENABLE_TOOL_SEARCH=true
+
+exec claude --model "$model" "$@"

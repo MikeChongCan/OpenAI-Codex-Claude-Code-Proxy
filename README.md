@@ -44,6 +44,18 @@ Lifecycle commands:
 ./start-cliproxy.sh  # foreground/debug mode
 ```
 
+Use the OpenAI Codex OAuth account already logged into CLIProxyAPI:
+
+```bash
+./claudex-oai
+./claudex-oai -p 'Reply with the active model name only'
+CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
+```
+
+`claudex-oai` defaults to `gpt-5.4`, which is currently present in the live
+CLIProxyAPI OAuth catalog. Unlike `claudex`, it does not select an Azure alias;
+usage is charged against the connected OpenAI/Codex account.
+
 Verify the full Azure round trip in another:
 
 ```bash

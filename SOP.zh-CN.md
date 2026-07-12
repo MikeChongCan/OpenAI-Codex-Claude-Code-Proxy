@@ -34,6 +34,19 @@ CLAUDEX_MODEL=gpt-5.6-terra ./claudex
 CLAUDEX_MODEL=gpt-5.6-luna ./claudex
 ```
 
+使用已登录 CLIProxyAPI 的 OpenAI Codex 官方账号：
+
+```bash
+./claudex-oai
+./claudex-oai -p "请只回复：OpenAI 代理正常"
+```
+
+默认使用 `gpt-5.4`。切换官方 Codex 模型：
+
+```bash
+CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
+```
+
 单次执行 Prompt：
 
 ```bash
