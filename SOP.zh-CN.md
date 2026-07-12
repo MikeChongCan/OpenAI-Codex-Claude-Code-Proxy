@@ -25,13 +25,13 @@ brew install cliproxyapi
 ```
 
 `claudex` 会自动在后台启动代理，不需要另开终端运行服务器。
-默认模型为 Azure `gpt-5.6-sol`，并强制启用 Claude Code effort 模式。
+默认模型为 Azure `azure-gpt-5.6-sol`，并强制启用 Claude Code effort 模式。
 
 切换其他 Azure 模型：
 
 ```bash
-CLAUDEX_MODEL=gpt-5.6-terra ./claudex
-CLAUDEX_MODEL=gpt-5.6-luna ./claudex
+CLAUDEX_MODEL=azure-gpt-5.6-terra ./claudex
+CLAUDEX_MODEL=azure-gpt-5.6-luna ./claudex
 ```
 
 使用已登录 CLIProxyAPI 的 OpenAI Codex 官方账号：
@@ -41,7 +41,7 @@ CLAUDEX_MODEL=gpt-5.6-luna ./claudex
 ./claudex-oai -p "请只回复：OpenAI 代理正常"
 ```
 
-默认使用 `gpt-5.4`。切换官方 Codex 模型：
+默认使用官方 Codex OAuth `gpt-5.6-sol`。切换其他官方模型：
 
 ```bash
 CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai

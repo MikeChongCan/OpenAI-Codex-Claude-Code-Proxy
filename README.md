@@ -52,9 +52,9 @@ Use the OpenAI Codex OAuth account already logged into CLIProxyAPI:
 CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
 ```
 
-`claudex-oai` defaults to `gpt-5.4`, which is currently present in the live
-CLIProxyAPI OAuth catalog. Unlike `claudex`, it does not select an Azure alias;
-usage is charged against the connected OpenAI/Codex account.
+`claudex-oai` defaults to the official Codex OAuth `gpt-5.6-sol`. Unlike
+`claudex`, it does not select an Azure alias; usage is charged against the
+connected OpenAI/Codex subscription.
 
 Verify the full Azure round trip in another:
 
@@ -99,11 +99,12 @@ OAuth files live in `~/.cli-proxy-api` by default and must never be committed.
 
 ## Model mapping
 
-Claude Code defaults to `gpt-5.6-sol`, with `gpt-5.6-terra` and
-`gpt-5.6-luna` available as direct aliases. The compatibility aliases
+Azure Claude Code defaults to `azure-gpt-5.6-sol`, with
+`azure-gpt-5.6-terra` and `azure-gpt-5.6-luna` available as direct aliases.
+This namespace prevents collisions with official Codex OAuth models. The compatibility aliases
 `azure-opus`, `azure-sonnet`, and `azure-haiku` remain available. Set the three
 `AZURE_*_DEPLOYMENT` variables when Azure has distinct deployments. The
-launcher explicitly enables Claude Code effort mode and uses Sol for
+launcher explicitly enables Claude Code effort mode and uses Azure Sol for
 subagents.
 
 Azure is configured as a CLIProxyAPI Codex API-key provider, which uses the
