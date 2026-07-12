@@ -29,7 +29,8 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     "$SCRIPT_DIR/config.cliproxy.template.yaml" \
     "$launch_runtime/config.yaml"
   launchctl remove com.wildcat.azure-claudex-proxy >/dev/null 2>&1 || true
-  launchctl submit -l com.wildcat.azure-claudex-proxy -- \
+  launchctl remove com.openai-codex-claude-code-proxy >/dev/null 2>&1 || true
+  launchctl submit -l com.openai-codex-claude-code-proxy -- \
     "$proxy_command" -config "$launch_runtime/config.yaml"
 else
   nohup "$SCRIPT_DIR/start-cliproxy.sh" \

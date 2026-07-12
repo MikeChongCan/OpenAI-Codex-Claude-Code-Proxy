@@ -1,7 +1,7 @@
 [project]
-name = "lite-llm-claude-proxy"
+name = "openai-codex-claude-code-proxy"
 version = "0.1.0"
-description = "Add your description here"
+description = "Run Claude Code through Azure OpenAI or OpenAI Codex OAuth using CLIProxyAPI"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

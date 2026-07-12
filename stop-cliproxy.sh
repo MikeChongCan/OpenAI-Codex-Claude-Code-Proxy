@@ -5,7 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 pid_file="$SCRIPT_DIR/.runtime/proxy.pid"
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  if launchctl remove com.wildcat.azure-claudex-proxy >/dev/null 2>&1; then
+  launchctl remove com.wildcat.azure-claudex-proxy >/dev/null 2>&1 || true
+  if launchctl remove com.openai-codex-claude-code-proxy >/dev/null 2>&1; then
     echo "CLIProxyAPI stopped"
   else
     echo "CLIProxyAPI is not managed by this repo"

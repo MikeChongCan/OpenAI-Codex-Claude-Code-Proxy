@@ -5,7 +5,7 @@
 进入项目目录：
 
 ```bash
-cd /Volumes/SandE/temp/202607/azure-claudex-proxy
+cd OpenAI-Codex-Claude-Code-Proxy
 ```
 
 确认 `.env` 已存在。它需要包含 Azure OpenAI 地址、API Key 和模型部署名称。

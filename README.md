@@ -1,162 +1,258 @@
-# Azure OpenAI for Claude Code
+# OpenAI Codex Claude Code Proxy
 
-This repo exposes Azure OpenAI deployments to Claude Code through an
-Anthropic-compatible local endpoint. The preferred backend is
-[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI); the original
-LiteLLM configuration remains as a fallback.
+Run Claude Code with GPT models through
+[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI).
 
-## Why CLIProxyAPI
+This project provides two small launchers:
 
-Claude Code speaks Anthropic Messages, including Anthropic SSE streaming and
-tool-use blocks. Azure OpenAI speaks the OpenAI protocol. CLIProxyAPI owns that
-translation and is actively tested against Claude Code. This wrapper keeps the
-Azure credentials out of committed YAML, binds only to localhost, and gives
-Claude Code a separate random local credential.
+- `./claudex` routes Claude Code to GPT-5.6 Sol on Azure OpenAI.
+- `./claudex-oai` routes Claude Code to GPT-5.6 Sol through an OpenAI/Codex
+  subscription authenticated with OAuth.
 
-## Setup
+Both launchers enable effort mode, defer tool loading, start the local proxy
+automatically, and keep provider credentials out of Claude Code.
 
-Requirements: macOS, Homebrew, Claude Code, Python 3, and an Azure deployment
-that supports Chat Completions, streaming, and tool calls.
+## How it works
+
+Claude Code sends requests using Anthropic's Messages API. CLIProxyAPI exposes
+an Anthropic-compatible localhost endpoint and translates those requests to the
+OpenAI Responses API.
+
+```text
+Claude Code -> localhost:8317 -> CLIProxyAPI -> Azure OpenAI or Codex OAuth
+```
+
+Azure and OpenAI subscription models use separate names so they cannot route
+to the wrong billing source:
+
+- `azure-gpt-5.6-sol` -> Azure OpenAI
+- `gpt-5.6-sol` -> OpenAI/Codex OAuth
+
+## Requirements
+
+- macOS or Linux
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
+- Python 3
+- One or both of:
+  - An Azure OpenAI endpoint, API key, and GPT deployment
+  - An OpenAI/Codex subscription supported by CLIProxyAPI OAuth
+
+The automatic background service uses `launchd` on macOS and `nohup` on Linux.
+
+## Install
+
+On macOS:
 
 ```bash
 brew install cliproxyapi
+git clone <YOUR_REPOSITORY_URL> OpenAI-Codex-Claude-Code-Proxy
+cd OpenAI-Codex-Claude-Code-Proxy
 cp .env.example .env
+```
+
+Generate a local proxy token:
+
+```bash
 openssl rand -hex 32
 ```
 
-Put the generated value in `CLIPROXY_LOCAL_TOKEN`, then set `AZURE_API_BASE`,
-`AZURE_API_KEY`, and the Azure deployment names in `.env`. The base URL must be
-the GA endpoint ending in `/openai/v1`.
+Put that value in `CLIPROXY_LOCAL_TOKEN` inside `.env`. This token protects the
+local proxy and must not be the same as a provider API key.
 
-Normally, just run Claude Code. `claudex` starts the proxy as a macOS user
-`launchd` job and waits for readiness (non-macOS uses a PID/log fallback):
+## Azure OpenAI setup
+
+Configure these values in `.env`:
+
+```dotenv
+AZURE_API_BASE=https://your-resource.services.ai.azure.com/openai/v1
+AZURE_API_KEY=your-azure-api-key
+CLIPROXY_LOCAL_TOKEN=your-random-local-token
+
+AZURE_OPUS_DEPLOYMENT=gpt-5.6-sol
+AZURE_SONNET_DEPLOYMENT=gpt-5.6-terra
+AZURE_HAIKU_DEPLOYMENT=gpt-5.6-luna
+```
+
+The deployment values are Azure deployment names. Change them when your Azure
+resource uses different names.
+
+Start Claude Code on Azure GPT-5.6 Sol:
 
 ```bash
 ./claudex
-./claudex -p 'Reply with the active model name only'
 ```
 
-Lifecycle commands:
+Run a single prompt:
 
 ```bash
-./ensure-cliproxy.sh
-./stop-cliproxy.sh
-./start-cliproxy.sh  # foreground/debug mode
+./claudex -p 'Reply with exactly: azure-ok'
 ```
 
-Use the OpenAI Codex OAuth account already logged into CLIProxyAPI:
+Select another Azure tier:
 
 ```bash
-./claudex-oai
-./claudex-oai -p 'Reply with the active model name only'
-CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
+CLAUDEX_MODEL=azure-gpt-5.6-terra ./claudex
+CLAUDEX_MODEL=azure-gpt-5.6-luna ./claudex
 ```
 
-`claudex-oai` defaults to the official Codex OAuth `gpt-5.6-sol`. Unlike
-`claudex`, it does not select an Azure alias; usage is charged against the
-connected OpenAI/Codex subscription.
+## OpenAI/Codex subscription setup
 
-Verify the full Azure round trip in another:
+Render the proxy configuration once, then authenticate CLIProxyAPI with
+OpenAI/Codex OAuth:
 
 ```bash
-./doctor.sh
+./start-cliproxy.sh
 ```
 
-Prove prompt caching is preserved (two small billable requests):
+Stop the foreground process with `Ctrl-C`, then run:
 
 ```bash
-set -a; source .env; set +a
-./cache-doctor.py
-```
-
-The test sends two requests with an identical prefix longer than 1,024 tokens
-through the Anthropic endpoint and requires the second response to report at
-least 1,024 `cache_read_input_tokens`. This catches translator changes that
-drop cached-token accounting or destabilize the prefix.
-
-For a global `claudex` command, symlink it somewhere already on `PATH`:
-
-```bash
-ln -s "$PWD/claudex" "$HOME/.local/bin/claudex"
-```
-
-The launcher deliberately unsets `ANTHROPIC_API_KEY` so an existing Anthropic
-key cannot accidentally bypass or conflict with the local gateway. It does not
-enable `--dangerously-skip-permissions`; pass that explicitly when intended.
-
-## Claude and Codex subscription auth (optional)
-
-CLIProxyAPI can also pool official CLI subscriptions. These are independent of
-the Azure provider:
-
-```bash
-cliproxyapi -config .runtime/config.yaml -claude-login
 cliproxyapi -config .runtime/config.yaml -codex-login
 ```
 
-Run `./start-cliproxy.sh` once first so the secret-bearing runtime config exists.
-OAuth files live in `~/.cli-proxy-api` by default and must never be committed.
-
-## Model mapping
-
-Azure Claude Code defaults to `azure-gpt-5.6-sol`, with
-`azure-gpt-5.6-terra` and `azure-gpt-5.6-luna` available as direct aliases.
-This namespace prevents collisions with official Codex OAuth models. The compatibility aliases
-`azure-opus`, `azure-sonnet`, and `azure-haiku` remain available. Set the three
-`AZURE_*_DEPLOYMENT` variables when Azure has distinct deployments. The
-launcher explicitly enables Claude Code effort mode and uses Azure Sol for
-subagents.
-
-Azure is configured as a CLIProxyAPI Codex API-key provider, which uses the
-Responses API. This is intentional: GPT-5.6 rejects Chat Completions requests
-that combine tools with reasoning, while Claude Code needs both. The Azure
-`api-key` header is added alongside CLIProxyAPI's standard bearer header.
-
-## Prompt-cache contract
-
-Azure caching is automatic for GPT-4o and newer models. Cache hits require an
-identical prefix of at least 1,024 tokens and are reported by Azure as
-`prompt_tokens_details.cached_tokens`; CLIProxyAPI maps that value back to
-Anthropic's `usage.cache_read_input_tokens`. For models newer than GPT-5.4,
-Azure currently defaults to 24-hour retention.
-
-To keep GPT-5.6 cache hits intact:
-
-- `claudex` does not append a dynamic system prompt.
-- The proxy does not inject timestamps, request IDs, or random content into the
-  system/message/tool prefix.
-- Model aliases are stable across sessions.
-- Do not reorder tool definitions or mutate the shared system prompt per turn.
-- Run `cache-doctor.py` after CLIProxyAPI upgrades; cached-token accounting is
-  part of the release gate.
-
-## Security and operations
-
-- The listener is fixed to `127.0.0.1`; do not expose it to a LAN or the public
-  internet without TLS, network controls, and a real secret manager.
-- `.runtime/config.yaml` contains the Azure key, is mode `0600`, and is ignored.
-- The local proxy token and Azure key must be different.
-- `doctor.sh` sends a small billable Azure request.
-- `cache-doctor.py` sends two billable Azure requests with a long repeated
-  prefix; run it deliberately, not in the offline unit-test suite.
-- OAuth subscription use may be governed by provider terms; Azure API-key use
-  does not depend on subscription OAuth.
-
-## Legacy LiteLLM fallback
-
-The old path remains available:
+After completing the browser login, start Claude Code on the official Codex
+GPT-5.6 Sol model:
 
 ```bash
-./start-proxy.sh
-./start-claude.sh
+./claudex-oai
 ```
 
-Prefer CLIProxyAPI for Claude Code because its scope is the CLI protocol bridge,
-while LiteLLM is a broader gateway with more parameter-normalization behavior.
+Run a single prompt or select another available OAuth model:
+
+```bash
+./claudex-oai -p 'Reply with exactly: oauth-ok'
+CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
+```
+
+OAuth credentials are stored by CLIProxyAPI in `~/.cli-proxy-api`; they are not
+stored in this repository.
+
+## Commands
+
+```bash
+./claudex                 # Azure OpenAI launcher
+./claudex-oai             # OpenAI/Codex OAuth launcher
+./ensure-cliproxy.sh      # Start the background proxy if needed
+./stop-cliproxy.sh        # Stop the managed background proxy
+./start-cliproxy.sh       # Run the proxy in the foreground
+./doctor.sh               # Test Azure and protocol translation
+./cache-doctor.py         # Verify an Azure prompt-cache hit
+```
+
+For global commands:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -s "$PWD/claudex" "$HOME/.local/bin/claudex"
+ln -s "$PWD/claudex-oai" "$HOME/.local/bin/claudex-oai"
+```
+
+## Model and effort settings
+
+The launchers set:
+
+```text
+CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
+CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY=3
+ENABLE_TOOL_SEARCH=true
+```
+
+Deferred tool loading is important when Claude Code has many MCP tools because
+Azure rejects requests containing more than 128 tools.
+
+The Azure launcher uses provider-prefixed aliases to prevent a GPT-5.6 request
+from accidentally consuming an OpenAI subscription—or the reverse.
+
+## Prompt caching
+
+Azure prompt caching is automatic for supported models. Repeated requests need
+an identical prefix of at least 1,024 tokens. CLIProxyAPI maps Azure's
+`cached_tokens` usage back to Anthropic's `cache_read_input_tokens` field.
+
+Verify caching with two small, billable requests:
+
+```bash
+set -a
+source .env
+set +a
+./cache-doctor.py
+```
+
+Expected result:
+
+```text
+OK Azure prompt caching is preserved through the proxy
+```
 
 ## Validation
 
+Run the offline checks:
+
 ```bash
 python3 -m unittest discover -s tests -v
-bash -n ensure-cliproxy.sh stop-cliproxy.sh start-cliproxy.sh claudex doctor.sh start-proxy.sh start-claude.sh claude-proxy.sh
+bash -n ensure-cliproxy.sh stop-cliproxy.sh start-cliproxy.sh \
+  claudex claudex-oai doctor.sh
+git diff --check
 ```
+
+Run live smoke tests:
+
+```bash
+./doctor.sh
+./claudex -p 'Reply with exactly: azure-ok'
+./claudex-oai -p 'Reply with exactly: oauth-ok'
+```
+
+`doctor.sh` and the launchers make billable provider requests.
+
+## Security
+
+- The proxy listens only on `127.0.0.1`.
+- `.env`, generated configuration, logs, OAuth files, and `.runtime` are
+  excluded from Git.
+- The generated CLIProxyAPI configuration is written with mode `0600`.
+- The launchers unset `ANTHROPIC_API_KEY` to prevent accidental direct Anthropic
+  billing.
+- The launchers never enable `--dangerously-skip-permissions`; pass it yourself
+  only when you explicitly accept that risk.
+- Do not expose port `8317` to a LAN or the public internet without proper TLS,
+  authentication, and network controls.
+
+## Troubleshooting
+
+### Proxy does not start
+
+```bash
+./stop-cliproxy.sh
+./start-cliproxy.sh
+```
+
+Keep the foreground process open and run `./doctor.sh` in another terminal.
+
+### `claude.ai connectors are disabled`
+
+Expected. Claude Code sees a custom API credential and disables Claude.ai
+connectors. Local MCP tools continue to work.
+
+### Too many tools
+
+Keep `ENABLE_TOOL_SEARCH=true`. Setting it to `false` can make Claude Code send
+every installed MCP tool in one request and exceed the provider limit.
+
+### Encrypted reasoning content cannot be verified
+
+Start a new Claude Code session after switching provider, deployment, model, or
+effort level. Encrypted reasoning state belongs to the Responses API route that
+created it and cannot safely move between Azure and OpenAI OAuth routes.
+
+## Documentation
+
+- [Chinese runbook](SOP.zh-CN.md)
+- [English launch post](POST.en.md)
+- [Traditional Chinese launch post](POST.zh-TW.md)
+
+## Acknowledgements
+
+Built on [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI). The
+`claudex` workflow was inspired by Theo's public walkthrough.

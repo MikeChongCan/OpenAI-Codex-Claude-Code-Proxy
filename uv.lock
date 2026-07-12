@@ -944,17 +944,6 @@ wheels = [
 ]
 
 [[package]]
-name = "lite-llm-claude-proxy"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "litellm", extra = ["proxy"] },
-]
-
-[package.metadata]
-requires-dist = [{ name = "litellm", extras = ["proxy"], specifier = ">=1.91.2" }]
-
-[[package]]
 name = "litellm"
 version = "1.91.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1301,6 +1290,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/78/60/d4219875289b11d2c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f1/b0/2291689e3ec4723fbf5bbf3b54afcd7b160f9ddc98ca7aedfd0132af5677/openai-2.45.0-py3-none-any.whl", hash = "sha256:5df105f5f8c9b711fcb9d06d2d3888cebc82506db216484c14a4e53cdf651777", size = 1629470, upload-time = "2026-07-09T18:02:42.21Z" },
 ]
+
+[[package]]
+name = "openai-codex-claude-code-proxy"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "litellm", extra = ["proxy"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "litellm", extras = ["proxy"], specifier = ">=1.91.2" }]
 
 [[package]]
 name = "orjson"
