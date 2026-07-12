@@ -5,9 +5,9 @@ Run Claude Code with GPT models through
 
 This project provides two small launchers:
 
-- `./claudex` routes Claude Code to GPT-5.6 Sol on Azure OpenAI.
 - `./claudex-oai` routes Claude Code to GPT-5.6 Sol through an OpenAI/Codex
   subscription authenticated with OAuth.
+- `./claudex` routes Claude Code to GPT-5.6 Sol on Azure OpenAI.
 
 Both launchers enable effort mode, defer tool loading, start the local proxy
 automatically, and keep provider credentials out of Claude Code.
@@ -19,14 +19,14 @@ an Anthropic-compatible localhost endpoint and translates those requests to the
 OpenAI Responses API.
 
 ```text
-Claude Code -> localhost:8317 -> CLIProxyAPI -> Azure OpenAI or Codex OAuth
+Claude Code -> localhost:8317 -> CLIProxyAPI -> Codex OAuth or Azure OpenAI
 ```
 
 Azure and OpenAI subscription models use separate names so they cannot route
 to the wrong billing source:
 
-- `azure-gpt-5.6-sol` -> Azure OpenAI
 - `gpt-5.6-sol` -> OpenAI/Codex OAuth
+- `azure-gpt-5.6-sol` -> Azure OpenAI
 
 ## Requirements
 
@@ -35,8 +35,8 @@ to the wrong billing source:
 - [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
 - Python 3
 - One or both of:
-  - An Azure OpenAI endpoint, API key, and GPT deployment
   - An OpenAI/Codex subscription supported by CLIProxyAPI OAuth
+  - An Azure OpenAI endpoint, API key, and GPT deployment
 
 The automatic background service uses `launchd` on macOS and `nohup` on Linux.
 
@@ -59,6 +59,38 @@ openssl rand -hex 32
 
 Put that value in `CLIPROXY_LOCAL_TOKEN` inside `.env`. This token protects the
 local proxy and must not be the same as a provider API key.
+
+## OpenAI/Codex subscription setup
+
+Render the proxy configuration once, then authenticate CLIProxyAPI with
+OpenAI/Codex OAuth:
+
+```bash
+./start-cliproxy.sh
+```
+
+Stop the foreground process with `Ctrl-C`, then run:
+
+```bash
+cliproxyapi -config .runtime/config.yaml -codex-login
+```
+
+After completing the browser login, start Claude Code on the official Codex
+GPT-5.6 Sol model:
+
+```bash
+./claudex-oai
+```
+
+Run a single prompt or select another available OAuth model:
+
+```bash
+./claudex-oai -p 'Reply with exactly: oauth-ok'
+CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
+```
+
+OAuth credentials are stored by CLIProxyAPI in `~/.cli-proxy-api`; they are not
+stored in this repository.
 
 ## Azure OpenAI setup
 
@@ -96,43 +128,11 @@ CLAUDEX_MODEL=azure-gpt-5.6-terra ./claudex
 CLAUDEX_MODEL=azure-gpt-5.6-luna ./claudex
 ```
 
-## OpenAI/Codex subscription setup
-
-Render the proxy configuration once, then authenticate CLIProxyAPI with
-OpenAI/Codex OAuth:
-
-```bash
-./start-cliproxy.sh
-```
-
-Stop the foreground process with `Ctrl-C`, then run:
-
-```bash
-cliproxyapi -config .runtime/config.yaml -codex-login
-```
-
-After completing the browser login, start Claude Code on the official Codex
-GPT-5.6 Sol model:
-
-```bash
-./claudex-oai
-```
-
-Run a single prompt or select another available OAuth model:
-
-```bash
-./claudex-oai -p 'Reply with exactly: oauth-ok'
-CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
-```
-
-OAuth credentials are stored by CLIProxyAPI in `~/.cli-proxy-api`; they are not
-stored in this repository.
-
 ## Commands
 
 ```bash
-./claudex                 # Azure OpenAI launcher
 ./claudex-oai             # OpenAI/Codex OAuth launcher
+./claudex                 # Azure OpenAI launcher
 ./ensure-cliproxy.sh      # Start the background proxy if needed
 ./stop-cliproxy.sh        # Stop the managed background proxy
 ./start-cliproxy.sh       # Run the proxy in the foreground
@@ -144,8 +144,8 @@ For global commands:
 
 ```bash
 mkdir -p "$HOME/.local/bin"
-ln -s "$PWD/claudex" "$HOME/.local/bin/claudex"
 ln -s "$PWD/claudex-oai" "$HOME/.local/bin/claudex-oai"
+ln -s "$PWD/claudex" "$HOME/.local/bin/claudex"
 ```
 
 ## Model and effort settings
