@@ -48,7 +48,7 @@ On macOS:
 
 ```bash
 brew install cliproxyapi
-git clone <YOUR_REPOSITORY_URL> OpenAI-Codex-Claude-Code-Proxy
+git clone https://github.com/MikeChongCan/OpenAI-Codex-Claude-Code-Proxy.git
 cd OpenAI-Codex-Claude-Code-Proxy
 cp .env.example .env
 ```
