@@ -22,10 +22,24 @@ unset ANTHROPIC_API_KEY
 export ANTHROPIC_DEFAULT_OPUS_MODEL="azure-gpt-5.6-sol"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="azure-gpt-5.6-terra"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="azure-gpt-5.6-luna"
-export CLAUDE_CODE_SUBAGENT_MODEL="azure-gpt-5.6-sol"
+# Do not set Claude Code's global subagent override by default. It has higher
+# precedence than each subagent's model selection, which would prevent
+# `model: sonnet` from routing to Terra and `model: haiku` from routing to Luna.
+# CLAUDEX_SUBAGENT_MODEL remains available when one model should be forced for
+# every subagent in a session.
+if [[ -n "${CLAUDEX_SUBAGENT_MODEL:-}" ]]; then
+  export CLAUDE_CODE_SUBAGENT_MODEL="$CLAUDEX_SUBAGENT_MODEL"
+else
+  unset CLAUDE_CODE_SUBAGENT_MODEL
+fi
 export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
 export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY="${CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY:-3}"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 export ENABLE_TOOL_SEARCH=true
 
-exec claude --model "${CLAUDEX_MODEL:-azure-gpt-5.6-sol}" "$@"
+claudex_system_prompt=$'Delegation policy:\n- Use the current main agent (Sol by default) for difficult, high-stakes, or cross-cutting work.\n- When delegation is useful for less difficult work, explicitly invoke a subagent with model `sonnet` (Terra) for routine implementation or review, or model `haiku` (Luna) for fast exploration and simple checks.\n- Do not invoke or load the `claude-api` skill, including through `/claude-api` or `Skill(claude-api)`.'
+
+exec claude \
+  --model "${CLAUDEX_MODEL:-azure-gpt-5.6-sol}" \
+  --append-system-prompt "$claudex_system_prompt" \
+  "$@"

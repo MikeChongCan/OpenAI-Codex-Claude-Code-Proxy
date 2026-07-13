@@ -91,6 +91,11 @@ Run a single prompt or select another available OAuth model:
 CLAUDEX_OAI_MODEL=gpt-5.5 ./claudex-oai
 ```
 
+By default, the OAuth launcher keeps Sol as the main model and maps `sonnet`
+subagents to GPT-5.6 Terra and `haiku` subagents to GPT-5.6 Luna. It appends the
+same delegation policy as the Azure launcher and instructs Claude not to invoke
+the bundled `claude-api` skill.
+
 OAuth credentials are stored by CLIProxyAPI in `~/.cli-proxy-api`; they are not
 stored in this repository.
 
@@ -128,6 +133,57 @@ Select another Azure tier:
 ```bash
 CLAUDEX_MODEL=azure-gpt-5.6-terra ./claudex
 CLAUDEX_MODEL=azure-gpt-5.6-luna ./claudex
+```
+
+### Sol main agent with Terra and Luna subagents
+
+`./claudex` starts the main Claude Code conversation on Sol. It maps Claude
+Code's model-family aliases as follows:
+
+- `opus` -> `azure-gpt-5.6-sol`
+- `sonnet` -> `azure-gpt-5.6-terra`
+- `haiku` -> `azure-gpt-5.6-luna`
+
+The launcher intentionally leaves `CLAUDE_CODE_SUBAGENT_MODEL` unset so each
+subagent invocation can select its own tier. Ask the Sol parent to use the
+`sonnet` model for a Terra worker or the `haiku` model for a Luna worker.
+`./claudex` also appends this routing policy to the Claude Code system prompt
+automatically and tells the main agent never to invoke the bundled
+`claude-api` skill.
+
+Custom subagents can declare a default tier with:
+
+```yaml
+model: sonnet # Terra
+```
+
+or:
+
+```yaml
+model: haiku # Luna
+```
+
+Claude Code's per-invocation Agent model has higher precedence than the custom
+subagent's `model` field. For deterministic routing, add a project instruction
+such as:
+
+```markdown
+When delegating implementation or review work, invoke the subagent with model
+`sonnet` (Terra). For fast exploration and simple checks, invoke it with model
+`haiku` (Luna).
+```
+
+Subagents invoked with `model: inherit`, or without any model selection,
+inherit the Sol main conversation. Claude Code's built-in Explore, Plan, and
+general-purpose agents also inherit the main model unless the parent invokes
+them with a specific model.
+
+To force every subagent onto one tier for a session, set the launcher-specific
+override. This disables per-subagent Terra/Luna selection for that session:
+
+```bash
+CLAUDEX_SUBAGENT_MODEL=sonnet ./claudex # all subagents use Terra
+CLAUDEX_SUBAGENT_MODEL=haiku ./claudex  # all subagents use Luna
 ```
 
 ## Commands

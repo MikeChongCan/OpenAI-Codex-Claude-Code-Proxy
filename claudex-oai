@@ -21,12 +21,21 @@ export ANTHROPIC_BASE_URL="http://127.0.0.1:$proxy_port"
 export ANTHROPIC_AUTH_TOKEN="$CLIPROXY_LOCAL_TOKEN"
 unset ANTHROPIC_API_KEY
 export ANTHROPIC_DEFAULT_OPUS_MODEL="$model"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="$model"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="$model"
-export CLAUDE_CODE_SUBAGENT_MODEL="$model"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="${CLAUDEX_OAI_SONNET_MODEL:-gpt-5.6-terra}"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="${CLAUDEX_OAI_HAIKU_MODEL:-gpt-5.6-luna}"
+if [[ -n "${CLAUDEX_SUBAGENT_MODEL:-}" ]]; then
+  export CLAUDE_CODE_SUBAGENT_MODEL="$CLAUDEX_SUBAGENT_MODEL"
+else
+  unset CLAUDE_CODE_SUBAGENT_MODEL
+fi
 export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
 export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY="${CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY:-3}"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 export ENABLE_TOOL_SEARCH=true
 
-exec claude --model "$model" "$@"
+claudex_system_prompt=$'Delegation policy:\n- Use the current main agent (Sol by default) for difficult, high-stakes, or cross-cutting work.\n- When delegation is useful for less difficult work, explicitly invoke a subagent with model `sonnet` (Terra) for routine implementation or review, or model `haiku` (Luna) for fast exploration and simple checks.\n- Do not invoke or load the `claude-api` skill, including through `/claude-api` or `Skill(claude-api)`.'
+
+exec claude \
+  --model "$model" \
+  --append-system-prompt "$claudex_system_prompt" \
+  "$@"
